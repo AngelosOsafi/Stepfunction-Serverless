@@ -1,0 +1,62 @@
+service: Stepfunction-Serverless
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  region: us-east-1
+
+resources:
+  Resources:
+    MyQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: MyQueue
+
+    LambdaExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: StepfunctionServerlessLambdaRoleName
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: SQSPolicy
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - sqs:SendMessage
+                    - sqs:ReceiveMessage
+                    - sqs:DeleteMessage
+                    - sqs:GetQueueAttributes
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - !GetAtt MyQueue.Arn
+                    - arn:aws:logs:*:*:*
+functions:
+  sendToSQS:
+    handler: src/sendToSQS.sendToSQS
+    environment:
+      SQS_QUEUE_URL:
+        Ref: MyQueue
+    role: 
+      Fn::GetAtt: 
+        - LambdaExecutionRole
+        - Arn
+
+  readFromSQS:
+    handler: src/readFromSQS.readFromSQS
+    environment:
+      SQS_QUEUE_URL:
+        Ref: MyQueue
+    role: 
+      Fn::GetAtt: 
+        - LambdaExecutionRole
+        - Arn
