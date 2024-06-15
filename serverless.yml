@@ -42,7 +42,7 @@ resources:
                     - arn:aws:logs:*:*:*
 functions:
   sendToSQS:
-    handler: src/sendToSQS.sendToSQS
+    handler: sendToSQS.sendToSQS
     environment:
       SQS_QUEUE_URL:
         Ref: MyQueue
@@ -52,7 +52,7 @@ functions:
         - Arn
 
   readFromSQS:
-    handler: src/readFromSQS.readFromSQS
+    handler: readFromSQS.readFromSQS
     environment:
       SQS_QUEUE_URL:
         Ref: MyQueue
